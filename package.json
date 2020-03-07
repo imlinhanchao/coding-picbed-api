@@ -1,8 +1,15 @@
 {
   "name": "coding-picbed-api",
   "version": "1.0.0",
-  "description": "",
+  "description": "Coding Picture Bed API",
   "main": "index.js",
+  "keywords": [
+    "coding",
+    "picture",
+    "upload",
+    "cdn",
+    "api"
+  ],
   "scripts": {
     "config": "node index.js install",
     "start": "node index.js"
@@ -11,7 +18,7 @@
     "type": "git",
     "url": "git+https://github.com/imlinhanchao/coding-picbed-api.git"
   },
-  "author": "",
+  "author": "Hancel.Lin",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/imlinhanchao/coding-picbed-api/issues"
