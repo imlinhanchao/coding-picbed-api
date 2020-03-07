@@ -5,7 +5,7 @@ const readline = require('readline');
 async function main() {
     let config_path = path.join(__dirname, 'config.json');
 
-    if (fs.existsSync(config_path)) return require('./config');
+    if (process.argv[2] != 'install' && fs.existsSync(config_path)) return require('./config');
     
     let config = {};
     let rl = readline.createInterface({

@@ -9,11 +9,12 @@ const install = require('./install');
 const github = 'https://github.com/imlinhanchao/coding-picbed-api'
 
 async function main() {
-    createServer(await install());
+    let config = await install();
+    if(process.argv[2] != 'install') createServer(config);
 }
 
 async function createServer(config) {
-    console.info('waiting to initialize...');
+    console.info('Waiting to initialize...');
     await coding.config(config);
     fs.mkdir(path.join(__dirname, 'tmp'), () => { });
     let html = fs.readFileSync(path.join(__dirname, 'upload.html'))
