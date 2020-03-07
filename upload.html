@@ -11,10 +11,10 @@
 
 <body>
     <div id="app">
-        <input class="file" name="file" type="file" accept="image/png,image/gif,image/jpeg" @change="update" />
+        <input class="file" name="file" type="file" accept="image/png,image/gif,image/jpeg" @change="handleUpload" />
         <div v-if="upload">
             <p>URL:</p>
-            <p v-for="l in upload.urls"><a :href="l">{{l}}</a></p>
+            <p v-for="l in upload.urls"><a target="_blank" :href="l">{{l}}</a></p>
         </div>
     </div>
     <script>
@@ -24,21 +24,19 @@
                 upload: null
             },
             methods: {
-                update(e) {
+                handleUpload(e) {
                     let file = e.target.files[0];
-                    let param = new FormData(); //创建form对象
-                    param.append('file', file); //通过append向form对象添加数据
-                    console.log(param.get('file')); //FormData私有类对象，访问不到，可以通过get判断值是否传进去
-                    let config = {
+                    let param = new FormData();
+
+                    if (file.size > 1024 * 1024) return;
+                    param.append('file', file);
+                    axios.post('/', param, {
                         headers: {
                             'Content-Type': 'multipart/form-data'
                         }
-                    }; //添加请求头
-                    axios.post('/', param, config)
-                        .then(rsp => {
-                            this.upload = rsp.data.data;
-                            console.log(response.data);
-                        })
+                    }).then(rsp => {
+                        this.upload = rsp.data.data;
+                    })
                 }
             }
         })

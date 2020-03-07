@@ -32,10 +32,18 @@ async function createServer(config) {
                 const form = formidable({ multiples: true });
          
                 form.parse(request, async (err, fields, files) => {
-                    let file = files.file.path + path.extname(files.file.name);
-                    fs.renameSync(files.file.path, file);
+                    if (files.f.size > 1024 * 1024 * config.size) {
+                        response.end(JSON.stringify({
+                            status: 1,
+                            msg: 'file size to big',
+                            data
+                        }));
+                    }
+                    let file = files.f.path + path.extname(files.f.name);
+                    fs.renameSync(files.f.path, file);
                     let data = await coding.upload(file);
-                    fs.unlink(file, () => {});
+                    fs.unlink(file, () => { });
+
                     response.end(JSON.stringify({
                         status: 0,
                         msg: 'upload success',
