@@ -1,7 +1,8 @@
 const http = require('http');
-const url = require("url");
-const querystring = require('querystring');
+const fs = require("fs");
+const path = require("path");
 const coding = require('coding-picbed');
+const formidable = require('formidable');
 
 const install = require('./install');
 
@@ -14,34 +15,46 @@ async function main() {
 async function createServer(config) {
     console.info('waiting to initialize...');
     await coding.config(config);
+    fs.mkdir(path.join(__dirname, 'tmp'), () => { });
+    let html = fs.readFileSync(path.join(__dirname, 'upload.html'))
 
     http.createServer(async function (request, response) {
-        let query = querystring.parse(url.parse(request.url).query);
-        
-        if (query.w) {
+        if (request.method == 'POST') {
             try {
                 response.writeHead(200, {
                     'Content-Type': 'application/json; charset=utf-8',
                     'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, DELETE, PUT',
+                    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
                     'Access-Control-Allow-Credentials': 'true',
                     'Access-Control-Allow-Headers': 'Content-Type,Content-Length, Authorization, Accept,X-Requested-With'
                 });
-                let data = {};
-                response.end();
+                
+                const form = formidable({ multiples: true });
+         
+                form.parse(request, async (err, fields, files) => {
+                    let file = files.file.path + path.extname(files.file.name);
+                    fs.renameSync(files.file.path, file);
+                    let data = await coding.upload(file);
+                    fs.unlink(file, () => {});
+                    response.end(JSON.stringify({
+                        status: 0,
+                        msg: 'upload success',
+                        data
+                    }));
+                });
             } catch (error) {
-                response.end(`
-                    <p>Has something wrong:</p>
-                    <p>
-                        ${error.message}
-                    </p>
-                    <p>
-                        Send a <a href="${github}/issues">Issue</a> to me.
-                    </p>`);
+                response.end(JSON.stringify({
+                    status: -1,
+                    msg: `Has something wrong: ${error.message}. Please post a <a href="${github}/issues">Issue</a> to me.`
+                }));
                 console.error(error);
             }
         } else {
-            response.end(`<script>location='${github}'</script>`);
+            response.writeHead(200, {
+                'Content-Type': 'text/html; charset=utf-8',
+            });
+            response.end(html)
+            //response.end(`<script>location='${github}'</script>`);
         }
     
     }).listen(8888);

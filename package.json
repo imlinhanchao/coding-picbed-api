@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/imlinhanchao/coding-picbed-api#readme",
   "dependencies": {
-    "coding-picbed": "0.0.2"
+    "coding-picbed": "0.0.3",
+    "formidable": "^1.2.2"
   }
 }

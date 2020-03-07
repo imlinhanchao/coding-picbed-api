@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coding Picture Bed Upload Demo</title>
+    <script src="https://cdn.bootcss.com/axios/0.19.2/axios.min.js"></script>
+    <script src="https://cdn.bootcss.com/vue/2.6.11/vue.min.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <input class="file" name="file" type="file" accept="image/png,image/gif,image/jpeg" @change="update" />
+        <div v-if="upload">
+            <p>URL:</p>
+            <p v-for="l in upload.urls"><a :href="l">{{l}}</a></p>
+        </div>
+    </div>
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                upload: null
+            },
+            methods: {
+                update(e) {
+                    let file = e.target.files[0];
+                    let param = new FormData(); //创建form对象
+                    param.append('file', file); //通过append向form对象添加数据
+                    console.log(param.get('file')); //FormData私有类对象，访问不到，可以通过get判断值是否传进去
+                    let config = {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    }; //添加请求头
+                    axios.post('/', param, config)
+                        .then(rsp => {
+                            this.upload = rsp.data.data;
+                            console.log(response.data);
+                        })
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>
