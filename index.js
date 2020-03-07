@@ -32,7 +32,7 @@ async function createServer(config) {
                 const form = formidable({ multiples: true });
          
                 form.parse(request, async (err, fields, files) => {
-                    if (files.f.size > 1024 * 1024 * config.size) {
+                    if (config.size > 0 && files.f.size > 1024 * 1024 * config.size) {
                         response.end(JSON.stringify({
                             status: 1,
                             msg: 'file size to big',

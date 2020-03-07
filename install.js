@@ -27,7 +27,7 @@ async function main() {
 
     config.token = await rl.inputData('Coding Token');
     config.repository = await rl.inputData('Coding Repository URL');
-    config.size = parseInt(await rl.inputData('File Size Limit(MB)', 1));
+    config.size = parseInt(await rl.inputData('File Size Limit(MB), -1 mean no limit', 1));
     config.port = parseInt(await rl.inputData('Server Port', 8888));
 
     fs.writeFile(config_path,
