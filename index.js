@@ -33,23 +33,32 @@ async function createServer(config) {
                 const form = formidable({ multiples: true });
          
                 form.parse(request, async (err, fields, files) => {
+                    if (!files.f) return response.end(JSON.stringify({
+                        status: 2,
+                        msg: 'Parameter error!'
+                    }));
                     if (config.size > 0 && files.f.size > 1024 * 1024 * config.size) {
                         response.end(JSON.stringify({
                             status: 1,
-                            msg: 'file size to big',
-                            data
+                            msg: 'File size to big!'
                         }));
                     }
                     let file = files.f.path + path.extname(files.f.name);
                     fs.renameSync(files.f.path, file);
-                    let data = await coding.upload(file);
-                    fs.unlink(file, () => { });
-
-                    response.end(JSON.stringify({
-                        status: 0,
-                        msg: 'upload success',
-                        data
-                    }));
+                    try {
+                        let data = await coding.upload(file);
+                        fs.unlink(file, () => { });
+                        response.end(JSON.stringify({
+                            status: 0,
+                            msg: 'upload success',
+                            data
+                        }));
+                    } catch (e) {
+                        response.end(JSON.stringify({
+                            status: 3,
+                            msg: e.message
+                        }));
+                    }
                 });
             } catch (error) {
                 response.end(JSON.stringify({
@@ -63,7 +72,6 @@ async function createServer(config) {
                 'Content-Type': 'text/html; charset=utf-8',
             });
             response.end(html)
-            //response.end(`<script>location='${github}'</script>`);
         }
     
     }).listen(8888);
