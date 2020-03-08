@@ -7,40 +7,164 @@
     <title>Coding Picture Bed Upload Demo</title>
     <script src="https://cdn.bootcss.com/axios/0.19.2/axios.min.js"></script>
     <script src="https://cdn.bootcss.com/vue/2.6.11/vue.min.js"></script>
+    <script src="https://use.fontawesome.com/6364f396e2.js"></script>
+    <script src="https://cdn.bootcss.com/clipboard.js/2.0.6/clipboard.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        .drag-area {
+            border: 3px dashed #000;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 10px;
+        }
+
+        .drag-over {
+            background-color: rgba(0xcc, 0xcc, 0xcc, .5);
+            color: #FFF;
+        }
+
+        .drag-title {
+            line-height: 200px;
+            font-size: 2em;
+        }
+
+        .img-list img {
+            width: 100%;
+        }
+
+        .img-box {
+            display: flex;
+        }
+
+        .img-view {
+            flex: 1;
+            vertical-align: middle;
+            padding: 5px 0;
+        }
+
+        .img-urls {
+            width: 80%;
+            padding: 10px;
+        }
+        .img-urls input{
+            width: 100%;
+        }
+        .img-urls p {
+            margin: 0;
+        }
+        .img-urls h3 {
+            margin: 10px 0;
+        }
+        .link {
+            display: flex;
+        }
+        .copy-btn {
+            border: 0;
+            background-color: transparent;
+        }
+    </style>
 </head>
 
 <body>
     <div id="app">
-        <input class="file" name="f" type="file" accept="image/png,image/gif,image/jpeg" @change="handleUpload" />
-        <div v-if="upload">
-            <p>URL:</p>
-            <p v-for="l in upload.urls"><a target="_blank" :href="l">{{l}}</a></p>
+        <div ref="drag-area" class="drag-area" :class="{'drag-over': isDrag}" @click="$refs['file'].click()">
+            <span class="drag-title">拖拽到此或粘贴或点击上传</span>
+            <input type="file" ref="file" v-show="false" @change="uploadHandle" accept="image/*" multiple>
         </div>
-    </div>
-    <script>
-        new Vue({
-            el: '#app',
-            data: {
-                upload: null
-            },
-            methods: {
-                handleUpload(e) {
-                    let file = e.target.files[0];
-                    let param = new FormData();
+        <div class="img-list">
+            <div v-for="i in images" class="img-box">
+                <div class="img-view"><img :src="i.blob" alt="" srcset=""></div>
+                <div class="img-urls">
+                    <div v-if="i.urls">
+                        <h3>外链地址</h3>
+                        <p v-for="l in i.urls" class="link">
+                            <input type="text" :value="l" onfocus="this.select()"><button :data-clipboard-text="l" class="copy-btn fa-clipboard fa"></button>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            let vm = new Vue({
+                el: '#app',
+                data: {
+                    images: [],
+                    isDrag: false,
+                    api: '/'
+                },
+                mounted() {
+                    this.$refs['drag-area'].addEventListener('dragenter', this.dragenterHandler, false);
+                    this.$refs['drag-area'].addEventListener('dragleave', this.dragleaveHandler, false);
+                    this.$refs['drag-area'].addEventListener('dragover', this.dragoverHandler, false);
+                    this.$refs['drag-area'].addEventListener('drop', this.dropHandler, false);
+                    document.addEventListener('paste', this.pasteHandle, false);
+                    new ClipboardJS('.copy-btn');
+                },
+                methods: {
+                    upload(file, i) {
+                        let param = new FormData();
 
-                    if (file.size > 1024 * 1024) return;
-                    param.append('f', file);
-                    axios.post('/', param, {
-                        headers: {
-                            'Content-Type': 'multipart/form-data'
-                        }
-                    }).then(rsp => {
-                        this.upload = rsp.data.data;
-                    })
+                        if (file.size > 1024 * 1024) return;
+                        param.append('f', file);
+                        axios.post(this.api, param, {
+                            headers: {
+                                'Content-Type': 'multipart/form-data'
+                            }
+                        }).then(rsp => {
+                            this.images[i].urls = rsp.data.data.urls;
+                        })
+                    },
+                    previewFile(f) {
+                        let reader = new FileReader();
+                        reader.onload = (e) => {
+                            this.upload(f, this.images.push({
+                                blob: reader.result,
+                                urls: null
+                            }) - 1);
+                        };
+                        reader.readAsDataURL(f);
+                    },
+                    uploadHandle(e) {
+                        let files = e.target.files;
+                        Array.from(files).forEach(f => {
+                            if (f.type.indexOf('image') < 0) return;
+                            this.previewFile(f);
+                        })
+                    },
+                    dragenterHandler(e) {
+                        this.isDrag = true;
+                        e.preventDefault();
+                    },
+                    dragleaveHandler(e) {
+                        this.isDrag = false;
+                    },
+                    dragoverHandler(e) {
+                        this.isDrag = true;
+                        e.preventDefault();
+                    },
+                    dropHandler(e) {
+                        this.isDrag = false;
+                        let files = e.dataTransfer.files;
+                        let i = 0;
+                        Array.from(files).forEach(f => {
+                            if (f.type.indexOf('image') < 0) return;
+                            this.previewFile(f);
+                        })
+                        e.preventDefault();
+                    },
+                    pasteHandle(e) {
+                        let items = event.clipboardData && event.clipboardData.items;
+                        Array.from(items).forEach(f => {
+                            if (f.type.indexOf('image') < 0) return;
+                            let file = f.getAsFile();
+                            this.previewFile(file);
+                        })
+                    }
                 }
-            }
-        })
-    </script>
+            })
+        </script>
 </body>
 
 </html>
