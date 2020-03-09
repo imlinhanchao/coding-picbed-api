@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Coding Picture Bed Upload Demo</title>
     <script src="https://cdn.bootcss.com/axios/0.19.2/axios.min.js"></script>
     <script src="https://cdn.bootcss.com/vue/2.6.11/vue.min.js"></script>
@@ -95,15 +95,15 @@
         }
         .config {
             margin: 10px 0;
-            font-size: 1.5em;
+            font-size: 1.2em;
             display: flex;
             width: 100%;
             flex: 1;
         }
         .config .box {
-            flex: 1 1;
             display: flex;
             flex-flow: row-reverse;
+            width: 50%;
         }
         .config label {
             display: inline-block;
@@ -113,8 +113,6 @@
         }
         .config input {
             flex: 1;
-            font-size: 1em;
-            width: 200px;
             border: 0;
             border-bottom: 1px dashed #555;
         }
