@@ -202,10 +202,8 @@
                         if (file.size > 1024 * 1024) return;
                         
                         if(this.config.token != '' && this.config.repository != '') {
-                            localStorage.setItem('token', this.config.token);
-                            localStorage.setItem('repository', this.config.repository);
-                            param.append('token', this.config.token);
-                            param.append('repository', this.config.repository);
+                            param.append('t', this.config.token);
+                            param.append('r', this.config.repository);
                         }
                         param.append('f', file);
                         axios.post(this.api, param, {
@@ -217,8 +215,13 @@
                             if (rsp.status) {
                                 this.error = rsp.msg;
                                 this.images.splice(i, 1);
+                                return;
                             }
-                            else this.images[i].urls = rsp.data.urls;
+                            this.images[i].urls = rsp.data.urls;
+                            if(this.config.token != '' && this.config.repository != '') {
+                                localStorage.setItem('token', this.config.token);
+                                localStorage.setItem('repository', this.config.repository);
+                            }
                         }).catch(err => {
                             this.error = err.message;
                             this.images.splice(i, 1);
