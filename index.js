@@ -40,8 +40,12 @@ async function createServer(config) {
                     if (config.supportcustom
                         && url.parse(request.url).pathname == 'reset') {
                         let c = new Coding();
-                        let { token, repository } = fields;
-                        await c.config({ token, repository });
+                        let { t, r } = fields;
+                        if(!t || !r) return response.end(JSON.stringify({
+                            status: 2,
+                            msg: 'Parameter error!'
+                        }));
+                        await c.config({ token: t, repository: r });
                         codings[repository] = c;
                         return response.end(JSON.stringify({
                             status: 0,
@@ -68,11 +72,11 @@ async function createServer(config) {
                     fs.renameSync(files.f.path, file);
                     try {
                         let c = coding;
-                        if (config.supportcustom && fields.token && !(c = codings[fields.repository])) {
+                        if (config.supportcustom && fields.t && !(c = codings[fields.r])) {
                             c = new Coding();
-                            let { token, repository } = fields;
-                            await c.config({ token, repository });
-                            codings[repository] = c;
+                            let { t, r } = fields;
+                            await c.config({ token: t, repository: r });
+                            codings[r] = c;
                         }
 
                         let data = await c.upload(file);
