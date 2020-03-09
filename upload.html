@@ -13,21 +13,50 @@
         * {
             box-sizing: border-box;
         }
+        body { 
+            margin: 0;
+        }
+        #app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding: 0 20px;
+        }
         .drag-area {
-            border: 3px dashed #000;
+            flex: 1;
+            background: #fff;
             text-align: center;
             cursor: pointer;
             border-radius: 10px;
+            border: 1px dashed #555;
+            overflow: hidden;
+            position: relative;
+            margin: 10px 0 10px;
+            min-height: 200px;
+            transition: border-color .2s ease;
         }
 
-        .drag-over {
-            background-color: rgba(0xcc, 0xcc, 0xcc, .5);
-            color: #FFF;
+        
+        .drag-area:hover {
+            border: 1px dashed #2d8cf0;
+            color: #2d8cf0;
+        }
+
+        .drag-area.drag-over, .drag-area:active {
+            border: 2px dashed #2d8cf0;
+            color: #2d8cf0;
         }
 
         .drag-title {
-            line-height: 200px;
+            position: absolute;
+            top: 0;
+            bottom: 0;
             font-size: 2em;
+            width: 100%;
+            left: 0;
+            display: inline-block;
+            margin: auto;
+            height: 110px;
         }
 
         .img-list img {
@@ -64,24 +93,80 @@
             border: 0;
             background-color: transparent;
         }
+        .config {
+            margin: 10px 0;
+            font-size: 1.5em;
+            display: flex;
+            width: 100%;
+            flex: 1;
+        }
+        .config .box {
+            flex: 1 1;
+            display: flex;
+            flex-flow: row-reverse;
+        }
+        .config label {
+            display: inline-block;
+            width: 1.5em;
+            text-align: center;
+            line-height: 1.5;
+        }
+        .config input {
+            flex: 1;
+            font-size: 1em;
+            width: 200px;
+            border: 0;
+            border-bottom: 1px dashed #555;
+        }
+        .config input:focus {
+            outline: 0;
+            border-bottom: 2px dashed #2d8cf0;
+
+        }
+        .config input:focus + label {
+            color: #2d8cf0
+        }
+        .error {
+            border: 1px solid #FF5722;
+            background-color: #ffefe6;
+            border-radius: 4px;
+            color: #515a6e;
+            padding: 8px 48px 8px 16px;
+            margin: 10px 0;
+        }
+        .error i {
+            color: #F44336;
+        }
+        .view {
+            display:flex;
+            height: 100%;
+            flex-direction: column;
+        }
     </style>
 </head>
 
 <body>
     <div id="app">
-        <div ref="drag-area" class="drag-area" :class="{'drag-over': isDrag}" @click="$refs['file'].click()">
-            <span class="drag-title">拖拽到此或粘贴或点击上传</span>
-            <input type="file" ref="file" v-show="false" @change="uploadHandle" accept="image/*" multiple>
+        <div class="config">
+            <div class="box"><input type="text" id="token" v-model="config.token" placeholder="Coding 访问令牌"><label for="token" class="fa fa-ticket"></label></div>
+            <div class="box"><input type="text" id="repo" v-model="config.repository" placeholder="Coding 仓库地址"><label for="repo" class="fa fa-code-fork"></label></div>
         </div>
-        <div class="img-list">
-            <div v-for="i in images" class="img-box">
-                <div class="img-view"><img :src="i.blob" alt="" srcset=""></div>
-                <div class="img-urls">
-                    <div v-if="i.urls">
-                        <h3>外链地址</h3>
-                        <p v-for="l in i.urls" class="link">
-                            <input type="text" :value="l" onfocus="this.select()"><button :data-clipboard-text="l" class="copy-btn fa-clipboard fa"></button>
-                        </p>
+        <div class="view">
+            <div ref="drag-area" class="drag-area" :class="{'drag-over': isDrag}" @click="$refs['file'].click()">
+                <span class="drag-title"><i class="fa fa-cloud-upload" aria-hidden="true"></i> <br/>拖拽到此或粘贴或点击上传</span>
+                <input type="file" ref="file" v-show="false" @change="uploadHandle" accept="image/*" multiple>
+            </div>
+            <div class="error" v-if="error"><i class="fa fa-exclamation" aria-hidden="true"></i> 错误：{{error}}</div>
+            <div class="img-list">
+                <div v-for="i in images" class="img-box">
+                    <div class="img-view"><img :src="i.blob" alt="" srcset=""></div>
+                    <div class="img-urls">
+                        <div v-if="i.urls">
+                            <h3>外链地址</h3>
+                            <p v-for="l in i.urls" class="link">
+                                <input type="text" :value="l" onfocus="this.select()"><button :data-clipboard-text="l" class="copy-btn fa-clipboard fa"></button>
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -92,7 +177,12 @@
                 data: {
                     images: [],
                     isDrag: false,
-                    api: '/'
+                    api: '/',
+                    config: {
+                        token: '',
+                        repository: ''
+                    },
+                    error: ''
                 },
                 mounted() {
                     this.$refs['drag-area'].addEventListener('dragenter', this.dragenterHandler, false);
@@ -101,19 +191,37 @@
                     this.$refs['drag-area'].addEventListener('drop', this.dropHandler, false);
                     document.addEventListener('paste', this.pasteHandle, false);
                     new ClipboardJS('.copy-btn');
+                    this.config.token = localStorage.getItem('token') || '';
+                    this.config.repository = localStorage.getItem('repository') || '';
                 },
                 methods: {
                     upload(file, i) {
+                        this.error = ''
                         let param = new FormData();
 
                         if (file.size > 1024 * 1024) return;
+                        
+                        if(this.config.token != '' && this.config.repository != '') {
+                            localStorage.setItem('token', this.config.token);
+                            localStorage.setItem('repository', this.config.repository);
+                            param.append('token', this.config.token);
+                            param.append('repository', this.config.repository);
+                        }
                         param.append('f', file);
                         axios.post(this.api, param, {
                             headers: {
                                 'Content-Type': 'multipart/form-data'
                             }
                         }).then(rsp => {
-                            this.images[i].urls = rsp.data.data.urls;
+                            rsp = rsp.data;
+                            if (rsp.status) {
+                                this.error = rsp.msg;
+                                this.images.splice(i, 1);
+                            }
+                            else this.images[i].urls = rsp.data.urls;
+                        }).catch(err => {
+                            this.error = err.message;
+                            this.images.splice(i, 1);
                         })
                     },
                     previewFile(f) {
