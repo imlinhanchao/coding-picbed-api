@@ -1,12 +1,14 @@
+const { Coding } = require('coding-picbed');
 const http = require('http');
 const fs = require("fs");
 const path = require("path");
-const coding = require('coding-picbed');
 const formidable = require('formidable');
+const url = require('url');
 
 const install = require('./install');
 
 const github = 'https://github.com/imlinhanchao/coding-picbed-api'
+let codings = {};
 
 async function main() {
     let config = await install();
@@ -15,7 +17,9 @@ async function main() {
 
 async function createServer(config) {
     console.info('Waiting to initialize...');
+    let coding = new Coding();
     await coding.config(config);
+    codings[config.repository] = coding;
     fs.mkdir(path.join(__dirname, 'tmp'), () => { });
     let html = fs.readFileSync(path.join(__dirname, 'upload.html'))
 
@@ -33,6 +37,22 @@ async function createServer(config) {
                 const form = formidable({ multiples: true });
          
                 form.parse(request, async (err, fields, files) => {
+                    if (config.supportcustom
+                        && url.parse(request.url).pathname == 'reset') {
+                        let c = new Coding();
+                        let { token, repository } = fields;
+                        await c.config({ token, repository });
+                        codings[repository] = c;
+                        return response.end(JSON.stringify({
+                            status: 0,
+                            msg: 'Reset Success!',
+                            data: [
+                                ...c.domains.map(d => `http://${d}/`),
+                                ...(c.isShare ? [`https://${c.user}.coding.net/p/${c.project}/d/${c.repo}/git/raw/master/`] : [])
+                            ]
+                        }));
+                    }
+        
                     if (!files.f) return response.end(JSON.stringify({
                         status: 2,
                         msg: 'Parameter error!'
@@ -43,10 +63,19 @@ async function createServer(config) {
                             msg: 'File size to big!'
                         }));
                     }
+
                     let file = files.f.path + path.extname(files.f.name);
                     fs.renameSync(files.f.path, file);
                     try {
-                        let data = await coding.upload(file);
+                        let c = coding;
+                        if (config.supportcustom && fields.token && !(c = codings[fields.repository])) {
+                            c = new Coding();
+                            let { token, repository } = fields;
+                            await c.config({ token, repository });
+                            codings[repository] = c;
+                        }
+
+                        let data = await c.upload(file);
                         fs.unlink(file, () => { });
                         response.end(JSON.stringify({
                             status: 0,

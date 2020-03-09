@@ -13,10 +13,16 @@ async function main() {
         output: process.stdout
     });
 
-    rl.inputData = function (key, defaultVal) {
+    rl.inputData = function (key, defaultVal, enumVals=null) {
         return new Promise((resolve, reject) => {
             try {
-                this.question(`${key}: ` + (defaultVal ? `[${defaultVal}]` : ''), function (val) {
+                let tipVal = (defaultVal ? `[${defaultVal}]` : '');
+                if (enumVals) tipVal = `[${enumVals.map(e => e == defaultVal ? e.toUpperCase() : e.toLowerCase()).join('/')}]`;
+            
+                this.question(`${key}: ` + tipVal, function (val) {
+                    if (val && enumVals && enumVals.indexOf(val) < 0) {
+                        return rl.inputData(key, defaultVal, enumVals).then(resolve).catch(reject);
+                    }
                     resolve(val || defaultVal);
                 });
             } catch (error) {
@@ -29,6 +35,7 @@ async function main() {
     config.repository = await rl.inputData('Coding Repository URL');
     config.size = parseInt(await rl.inputData('File Size Limit(MB), -1 mean no limit', 1));
     config.port = parseInt(await rl.inputData('Server Port', 8888));
+    config.supportcustom = (await rl.inputData('Support Custom Repository', 'y', ['y', 'n'])).toLowerCase() == 'y';
 
     fs.writeFile(config_path,
         JSON.stringify(config, null, 4),
