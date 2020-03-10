@@ -19,7 +19,7 @@ async function createServer(config) {
     console.info('Waiting to initialize...');
     let coding = new Coding();
     await coding.config(config);
-    codings[config.repository] = coding;
+    codings[config.repository + config.token] = coding;
     fs.mkdir(path.join(__dirname, 'tmp'), () => { });
     let html = fs.readFileSync(path.join(__dirname, 'upload.html'))
 
@@ -46,7 +46,7 @@ async function createServer(config) {
                             msg: 'Parameter error!'
                         }));
                         await c.config({ token: t, repository: r });
-                        codings[repository] = c;
+                        codings[r + t] = c;
                         return response.end(JSON.stringify({
                             status: 0,
                             msg: 'Reset Success!',
@@ -72,11 +72,11 @@ async function createServer(config) {
                     fs.renameSync(files.f.path, file);
                     try {
                         let c = coding;
-                        if (config.supportcustom && fields.t && !(c = codings[fields.r])) {
+                        if (config.supportcustom && fields.t && !(c = codings[fields.r + fields.t])) {
                             c = new Coding();
                             let { t, r } = fields;
                             await c.config({ token: t, repository: r });
-                            codings[r] = c;
+                            codings[r + t] = c;
                         }
 
                         let data = await c.upload(file);
