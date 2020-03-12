@@ -79,7 +79,8 @@ async function createServer(config) {
                             codings[r + t] = c;
                         }
 
-                        let data = await c.upload(file);
+                        let dir = fields.d || '/'
+                        let data = await c.upload(file, dir);
                         fs.unlink(file, () => { });
                         response.end(JSON.stringify({
                             status: 0,

@@ -173,6 +173,7 @@
         <div class="config">
             <div class="box"><input type="text" id="token" v-model="config.token" placeholder="Coding 访问令牌"><label for="token" class="fa fa-ticket"></label></div>
             <div class="box"><input type="text" id="repo" v-model="config.repository" placeholder="Coding 仓库地址"><label for="repo" class="fa fa-code-fork"></label></div>
+            <div class="box"><input type="text" id="dir" v-model="config.directoy" placeholder="保存到文件夹"><label for="dir" class="fa fa-folder"></label></div>
         </div>
         <div class="view">
             <div ref="drag-area" class="drag-area" :class="{'drag-over': isDrag}" @click="$refs['file'].click()">
@@ -207,7 +208,8 @@
                     api: '/',
                     config: {
                         token: '',
-                        repository: ''
+                        repository: '',
+                        directoy: '/'
                     },
                     error: ''
                 },
@@ -232,6 +234,7 @@
                             param.append('t', this.config.token);
                             param.append('r', this.config.repository);
                         }
+                        param.append('d', this.config.directoy);
                         param.append('f', file);
                         axios.post(this.api, param, {
                             headers: {
