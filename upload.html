@@ -228,7 +228,11 @@
                         this.error = ''
                         let param = new FormData();
 
-                        if (file.size > 1024 * 1024) return;
+                        if (file.size > 1024 * 1024) {
+                            this.images.splice(i, 1);
+                            this.error = '文件太大了！请选择小于 1 MB 的图片';
+                            return;
+                        }
                         
                         if(this.config.token != '' && this.config.repository != '') {
                             param.append('t', this.config.token);
