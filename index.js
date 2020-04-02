@@ -108,8 +108,8 @@ async function createServer(config) {
             response.end(html)
         }
     
-    }).listen(8888);
-    console.info('Server running at http://localhost:8888/');
+    }).listen(config.port);
+    console.info(`Server running at http://localhost:${config.port}/`);
 }
 
 main();
