@@ -38,7 +38,7 @@ function upload() {
 |--|--|
 |f|文件对象|
 |t|token(可选)|
-|r|仓库地址(可选)|
+|r|仓库地址(可选)，例如：https://username.coding.net/p/project/d/repository/git|
 |d|仓库内目录(可选)|
 
 ## 响应内容
