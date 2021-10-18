@@ -248,12 +248,12 @@
                     this.config.repository = localStorage.getItem('repository') || '';
                 },
                 methods: {
-                    upload(file, i) {
+                    upload(file) {
                         this.error = ''
                         let param = new FormData();
 
                         if (file.size > 1024 * 1024) {
-                            this.images.splice(i, 1);
+                            this.images.splice(0, 1);
                             this.error = '文件太大了！请选择小于 1 MB 的图片';
                             return;
                         }
@@ -272,26 +272,27 @@
                             rsp = rsp.data;
                             if (rsp.status) {
                                 this.error = rsp.msg;
-                                this.images.splice(i, 1);
+                                this.images.splice(0, 1);
                                 return;
                             }
-                            this.images[i].urls = rsp.data.urls;
+                            this.images[0].urls = rsp.data.urls;
                             if(this.config.token != '' && this.config.repository != '') {
                                 localStorage.setItem('token', this.config.token);
                                 localStorage.setItem('repository', this.config.repository);
                             }
                         }).catch(err => {
                             this.error = err.message;
-                            this.images.splice(i, 1);
+                            this.images.splice(0, 1);
                         })
                     },
                     previewFile(f) {
                         let reader = new FileReader();
                         reader.onload = (e) => {
-                            this.upload(f, this.images.push({
+                            this.images.unshift({
                                 blob: reader.result,
                                 urls: null
-                            }) - 1);
+                            });
+                            this.upload(f);
                         };
                         reader.readAsDataURL(f);
                     },
@@ -316,7 +317,6 @@
                     dropHandler(e) {
                         this.isDrag = false;
                         let files = e.dataTransfer.files;
-                        let i = 0;
                         Array.from(files).forEach(f => {
                             if (f.type.indexOf('image') < 0) return;
                             this.previewFile(f);
