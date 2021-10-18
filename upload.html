@@ -17,7 +17,6 @@
         }
         body { 
             margin: auto;
-            max-width: 750px;
         }
         #app {
             display: flex;
@@ -39,7 +38,28 @@
             transition: border-color .2s ease;
         }
 
+        .section {
+            display: flex;
+            flex-direction: column;
+            width: 50%;
+            padding: 0 1em;
+        }
         
+        .img-list {
+            display: flex;
+            flex-direction: column;
+            width: 50%;
+            height: 100%;
+            overflow: auto;
+        }
+        
+        .main {
+            display: flex;
+            flex-direction: row;
+            height: calc(100vh - 100px);
+            padding: 10px 0;
+        }
+
         .drag-area:hover {
             border: 1px dashed #2d8cf0;
             color: #2d8cf0;
@@ -152,7 +172,7 @@
         }
         .header {
             text-align: center;
-            /*display: flex;*/
+            height: 100px;
         }
         .header .logo {
             font-family: "Noto Serif SC", PingFang SC,Helvetica Neue,Hiragino Sans GB,Segoe UI,Microsoft YaHei,微软雅黑,sans-serif;
@@ -170,17 +190,21 @@
         <div class="header">
             <h1 class="logo"><i class="fa fa-picture-o logo icon" aria-hidden="true"></i> Coding 图床</h1>
         </div>
-        <div class="config">
-            <div class="box"><input type="text" id="token" v-model="config.token" placeholder="Coding 访问令牌"><label for="token" class="fa fa-ticket"></label></div>
-            <div class="box"><input type="text" id="repo" v-model="config.repository" placeholder="Coding 仓库地址"><label for="repo" class="fa fa-code-fork"></label></div>
-            <div class="box"><input type="text" id="dir" v-model="config.directoy" placeholder="保存到文件夹"><label for="dir" class="fa fa-folder"></label></div>
-        </div>
-        <div class="view">
-            <div ref="drag-area" class="drag-area" :class="{'drag-over': isDrag}" @click="$refs['file'].click()">
-                <span class="drag-title"><i class="fa fa-cloud-upload" aria-hidden="true"></i> <br/>拖拽到此或粘贴上传</span>
-                <input type="file" ref="file" style="display: none;" @change="uploadHandle" accept="image/*" multiple>
+        <div class="main">
+            <div class="section">
+                <div class="config">
+                    <div class="box"><input type="text" id="token" v-model="config.token" placeholder="Coding 访问令牌"><label for="token" class="fa fa-ticket"></label></div>
+                    <div class="box"><input type="text" id="repo" v-model="config.repository" placeholder="Coding 仓库地址"><label for="repo" class="fa fa-code-fork"></label></div>
+                    <div class="box"><input type="text" id="dir" v-model="config.directoy" placeholder="保存到文件夹"><label for="dir" class="fa fa-folder"></label></div>
+                </div>
+                <div class="view">
+                    <div ref="drag-area" class="drag-area" :class="{'drag-over': isDrag}" @click="$refs['file'].click()">
+                        <span class="drag-title"><i class="fa fa-cloud-upload" aria-hidden="true"></i> <br/>拖拽到此或粘贴上传</span>
+                        <input type="file" ref="file" style="display: none;" @change="uploadHandle" accept="image/*" multiple>
+                    </div>
+                    <div class="error" v-if="error"><i class="fa fa-exclamation" aria-hidden="true"></i> 错误：{{error}}</div>
+                </div>
             </div>
-            <div class="error" v-if="error"><i class="fa fa-exclamation" aria-hidden="true"></i> 错误：{{error}}</div>
             <div class="img-list">
                 <div v-for="i in images" class="img-box">
                     <div class="img-view"><img :src="i.blob" alt="" srcset=""></div>
